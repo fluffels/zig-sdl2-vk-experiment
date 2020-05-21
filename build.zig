@@ -12,6 +12,9 @@ pub fn build(b: *Builder) void {
     const mode = b.standardReleaseOptions();
 
     const exe = b.addExecutable("skybox", "src/main.zig");
+    exe.addIncludeDir("lib/SDL2/include");
+    exe.linkLibC();
+    exe.linkSystemLibrary("lib/SDL2/lib/x64/SDL2");
     exe.setTarget(target);
     exe.setBuildMode(mode);
     exe.install();
