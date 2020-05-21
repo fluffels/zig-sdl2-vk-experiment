@@ -1,4 +1,5 @@
 const sdl = @cImport(@cInclude("SDL.h"));
+const sdlVK = @cImport(@cInclude("SDL_Vulkan.h"));
 const std = @import("std");
 const vk = @import("vk");
 
@@ -66,6 +67,18 @@ pub fn main() anyerror!void {
 
     try printVulkanVersion();
     var instance = try createInstance();
+
+    var surface: vk.SurfaceKHR = undefined;
+    code = sdlVK.SDL_Vulkan_CreateSurface(
+        window,
+        instance,
+        &surface
+    );
+    if (!code) {
+        std.debug.warn("could not create surface");
+        return;
+    }
+
     var gpu = try createGPU(instance);
     var device = try createDevice(gpu);
     var queue = vk.GetDeviceQueue(device, 0, 0);
