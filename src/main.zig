@@ -2,6 +2,9 @@ const c = @import("c.zig");
 const std = @import("std");
 const vk = @import("vk");
 
+const panic = std.debug.panic;
+const warn = std.debug.warn;
+
 const allocator = std.heap.c_allocator;
 
 pub fn createDevice(gpu: vk.PhysicalDevice) anyerror!vk.Device {
@@ -52,7 +55,7 @@ pub fn printVulkanVersion() anyerror!void {
     var major = version >> 22;
     var minor = (version >> 12) & 0x3ff;
     var patch = version & 0xfff;
-    std.debug.warn("vulkan {}.{}.{}\n", .{major, minor, patch});
+    warn("vulkan {}.{}.{}\n", .{major, minor, patch});
 }
 
 pub fn getRequiredExtensions(window: *c.SDL_Window) ![][*:0]u8 {
@@ -61,10 +64,10 @@ pub fn getRequiredExtensions(window: *c.SDL_Window) ![][*:0]u8 {
         window, &count, null
     );
     if (@enumToInt(success) != c.SDL_TRUE) {
-        std.debug.warn("could not fetch extension count", .{});
+        warn("could not fetch extension count", .{});
         // return;
     } else {
-        std.debug.warn("requires {} extensions\n", .{ count });
+        warn("requires {} extensions\n", .{ count });
     }
     var names = try allocator.alloc([*:0]u8, count);
     for (names) |*name| {
@@ -76,13 +79,13 @@ pub fn getRequiredExtensions(window: *c.SDL_Window) ![][*:0]u8 {
         @ptrCast([*c][*c]u8, @alignCast(8, names))
     );
     if (@enumToInt(success) != c.SDL_TRUE) {
-        std.debug.warn("could not fetch extensions", .{});
+        warn("could not fetch extensions", .{});
         // return;
     } else {
-        std.debug.warn("fetched {} extensions\n", .{ names.len });
+        warn("fetched {} extensions\n", .{ names.len });
     }
     for (names) |name| {
-        std.debug.warn("required extension: {}\n", . { name });
+        warn("required extension: {}\n", . { name });
     }
     return names;
 }
@@ -108,7 +111,7 @@ pub fn main() anyerror!void {
         &surface
     );
     if (@enumToInt(success) != c.SDL_TRUE) {
-        std.debug.panic("could not create surface", .{});
+        panic("could not create surface", .{});
     }
 
     var gpu = try createGPU(instance);
