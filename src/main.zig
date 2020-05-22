@@ -108,8 +108,7 @@ pub fn main() anyerror!void {
         &surface
     );
     if (@enumToInt(success) != c.SDL_TRUE) {
-        std.debug.warn("could not create surface", .{});
-        return;
+        std.debug.panic("could not create surface", .{});
     }
 
     var gpu = try createGPU(instance);
