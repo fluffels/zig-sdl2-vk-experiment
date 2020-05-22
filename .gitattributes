@@ -1,3 +1,5 @@
+*.zig text eol=lf
+
 SDL2.dll filter=lfs diff=lfs merge=lfs -text
 lib/vulkan-1.lib filter=lfs diff=lfs merge=lfs -text
 include/vk.zig filter=lfs diff=lfs merge=lfs -text
