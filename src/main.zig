@@ -1,7 +1,4 @@
-const sdl = @cImport({
-    @cInclude("SDL.h");
-    @cInclude("SDL_Vulkan.h");
-});
+const c = @import("c.zig");
 const std = @import("std");
 const vk = @import("vk");
 
@@ -58,12 +55,12 @@ pub fn printVulkanVersion() anyerror!void {
     std.debug.warn("vulkan {}.{}.{}\n", .{major, minor, patch});
 }
 
-pub fn getRequiredExtensions(window: *sdl.SDL_Window) ![][*:0]u8 {
+pub fn getRequiredExtensions(window: *c.SDL_Window) ![][*:0]u8 {
     var count: c_uint = 0;
-    var success = sdl.SDL_Vulkan_GetInstanceExtensions(
+    var success = c.SDL_Vulkan_GetInstanceExtensions(
         window, &count, null
     );
-    if (@enumToInt(success) != sdl.SDL_TRUE) {
+    if (@enumToInt(success) != c.SDL_TRUE) {
         std.debug.warn("could not fetch extension count", .{});
         // return;
     } else {
@@ -73,12 +70,12 @@ pub fn getRequiredExtensions(window: *sdl.SDL_Window) ![][*:0]u8 {
     for (names) |*name| {
         name.* = @ptrCast([*:0]u8, try allocator.alloc(u8, 255));
     }
-    success = sdl.SDL_Vulkan_GetInstanceExtensions(
+    success = c.SDL_Vulkan_GetInstanceExtensions(
         window,
         &count,
         @ptrCast([*c][*c]u8, @alignCast(8, names))
     );
-    if (@enumToInt(success) != sdl.SDL_TRUE) {
+    if (@enumToInt(success) != c.SDL_TRUE) {
         std.debug.warn("could not fetch extensions", .{});
         // return;
     } else {
@@ -91,12 +88,12 @@ pub fn getRequiredExtensions(window: *sdl.SDL_Window) ![][*:0]u8 {
 }
 
 pub fn main() anyerror!void {
-    var code = sdl.SDL_Init(sdl.SDL_INIT_VIDEO);
-    var window = sdl.SDL_CreateWindow(
+    var code = c.SDL_Init(c.SDL_INIT_VIDEO);
+    var window = c.SDL_CreateWindow(
         "skybox",
         0, 0,
         640, 480,
-        sdl.SDL_WINDOW_VULKAN
+        c.SDL_WINDOW_VULKAN
     ) orelse return;
 
     try printVulkanVersion();
@@ -104,13 +101,13 @@ pub fn main() anyerror!void {
 
     var extensions = getRequiredExtensions(window);
 
-    var surface: sdl.VkSurfaceKHR = undefined;
-    var success = sdl.SDL_Vulkan_CreateSurface(
+    var surface: c.VkSurfaceKHR = undefined;
+    var success = c.SDL_Vulkan_CreateSurface(
         window,
-        @ptrCast(sdl.VkInstance, &instance),
+        @ptrCast(c.VkInstance, &instance),
         &surface
     );
-    if (@enumToInt(success) != sdl.SDL_TRUE) {
+    if (@enumToInt(success) != c.SDL_TRUE) {
         std.debug.warn("could not create surface", .{});
         return;
     }
@@ -121,14 +118,14 @@ pub fn main() anyerror!void {
 
     var done = false;
     while (!done) {
-        sdl.SDL_PumpEvents();
+        c.SDL_PumpEvents();
         var keyCount: i32 = 0;
-        var keys = sdl.SDL_GetKeyboardState(&keyCount);
-        if (keys[sdl.SDL_SCANCODE_ESCAPE] == 1) {
+        var keys = c.SDL_GetKeyboardState(&keyCount);
+        if (keys[c.SDL_SCANCODE_ESCAPE] == 1) {
             done = true;
         }
     }
 
-    sdl.SDL_DestroyWindow(window);
-    sdl.SDL_Quit();
+    c.SDL_DestroyWindow(window);
+    c.SDL_Quit();
 }
