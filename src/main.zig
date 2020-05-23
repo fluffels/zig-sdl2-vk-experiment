@@ -27,15 +27,20 @@ pub fn createGPU(instance: vk.Instance) anyerror!vk.PhysicalDevice {
     return result.physicalDevices[0];
 }
 
-pub fn createInstance() anyerror!vk.Instance {
+pub fn createInstance(extensions: [][*:0]u8) anyerror!vk.Instance {
     var appInfo = vk.ApplicationInfo{
         .applicationVersion = 0,
         .engineVersion = 0,
         .apiVersion = 0,
     };
     var createInfo = vk.InstanceCreateInfo{
-        .pApplicationInfo = &appInfo
+        .pApplicationInfo = &appInfo,
+        .enabledExtensionCount = @intCast(u32, extensions.len),
+        .ppEnabledExtensionNames = @ptrCast([*]const [*:0]const u8, extensions)
     };
+    warn("count: {}\n", .{ createInfo.enabledExtensionCount });
+    warn("required extension: {}\n", . { extensions[0] });
+    warn("required extension: {}\n", . { extensions[1] });
     var instance = try vk.CreateInstance(createInfo, null);
     return instance;
 }
@@ -84,9 +89,6 @@ pub fn getRequiredExtensions(window: *c.SDL_Window) ![][*:0]u8 {
     } else {
         warn("fetched {} extensions\n", .{ names.len });
     }
-    for (names) |name| {
-        warn("required extension: {}\n", . { name });
-    }
     return names;
 }
 
@@ -100,9 +102,10 @@ pub fn main() anyerror!void {
     ) orelse return;
 
     try printVulkanVersion();
-    var instance = try createInstance();
 
-    var extensions = getRequiredExtensions(window);
+    var extensions = getRequiredExtensions(window)
+        catch panic("could not get extensions: {}", .{ c.SDL_GetError() });
+    var instance = try createInstance(extensions);
 
     var surface: c.VkSurfaceKHR = undefined;
     var success = c.SDL_Vulkan_CreateSurface(
@@ -111,7 +114,7 @@ pub fn main() anyerror!void {
         &surface
     );
     if (@enumToInt(success) != c.SDL_TRUE) {
-        panic("could not create surface", .{});
+        panic("could not create surface: {}", .{ @ptrCast([*:0]const u8, c.SDL_GetError()) });
     }
 
     var gpu = try createGPU(instance);
